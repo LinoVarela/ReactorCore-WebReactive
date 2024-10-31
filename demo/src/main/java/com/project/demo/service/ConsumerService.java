@@ -1,12 +1,13 @@
 package com.project.demo.service;
 
 import com.project.demo.entity.Consumer;
+import com.project.demo.entity.ConsumerMedia;
 import com.project.demo.repository.ConsumerRepository;
-import com.project.demo.repository.ConsumerMediaRepository; // Import for relationship checks
+import com.project.demo.repository.ConsumerMediaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
 public class ConsumerService {
@@ -15,30 +16,36 @@ public class ConsumerService {
     private ConsumerRepository consumerRepository;
 
     @Autowired
-    private ConsumerMediaRepository consumerMediaRepository; // For relationship checks
+    private ConsumerMediaRepository consumerMediaRepository;
 
-    public Consumer createConsumer(Consumer consumer) {
-        return consumerRepository.save(consumer);
+    public Mono<Consumer> createConsumer(Consumer consumer) {
+        return Mono.fromCallable(() -> consumerRepository.save(consumer));
     }
 
-    public List<Consumer> getAllConsumers() {
-        return consumerRepository.findAll();
+    public Flux<Consumer> getAllConsumers() {
+        return Flux.fromIterable(consumerRepository.findAll());
     }
 
-    public Consumer getConsumerById(Long id) {
-        return consumerRepository.findById(id).orElse(null); // Handle not found case as needed
+    public Mono<Consumer> getConsumerById(Long id) {
+        return Mono.justOrEmpty(consumerRepository.findById(id));
     }
 
-    public Consumer updateConsumer(Long id, Consumer consumer) {
-        consumer.setId(id); // Set the ID to update
-        return consumerRepository.save(consumer);
+    public Mono<Consumer> updateConsumer(Long id, Consumer consumer) {
+        return Mono.justOrEmpty(consumerRepository.findById(id))
+            .flatMap(existingConsumer -> {
+                consumer.setId(id);
+                return Mono.fromCallable(() -> consumerRepository.save(consumer));
+            });
     }
 
-    public void deleteConsumer(Long id) {
-        // Check if the consumer is connected to any media
-        if (consumerMediaRepository.existsByConsumerId(id)) {
-            throw new IllegalArgumentException("Cannot delete consumer, it is linked to media.");
-        }
-        consumerRepository.deleteById(id);
+    public Mono<Void> deleteConsumer(Long id) {
+        return Mono.justOrEmpty(consumerMediaRepository.existsByConsumerId(id))
+            .flatMap(hasRelationship -> {
+                if (hasRelationship) {
+                    return Mono.error(new IllegalStateException("Cannot delete Consumer with existing relationships"));
+                } else {
+                    return Mono.fromRunnable(() -> consumerRepository.deleteById(id));
+                }
+            });
     }
 }

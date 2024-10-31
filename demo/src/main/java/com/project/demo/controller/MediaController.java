@@ -5,8 +5,8 @@ import com.project.demo.service.MediaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api/media")
@@ -16,36 +16,34 @@ public class MediaController {
     private MediaService mediaService;
 
     @PostMapping
-    public ResponseEntity<Media> createMedia(@RequestBody Media media) {
-        Media createdMedia = mediaService.createMedia(media);
-        return ResponseEntity.ok(createdMedia);
+    public Mono<ResponseEntity<Media>> createMedia(@RequestBody Media media) {
+        return mediaService.createMedia(media)
+                .map(ResponseEntity::ok);
     }
 
     @GetMapping
-    public ResponseEntity<List<Media>> getAllMedia() {
-        List<Media> mediaList = mediaService.getAllMedia();
-        return ResponseEntity.ok(mediaList);
+    public Flux<Media> getAllMedia() {
+        return mediaService.getAllMedia();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Media> getMediaById(@PathVariable Long id) {
-        Media media = mediaService.getMediaById(id);
-        return media != null ? ResponseEntity.ok(media) : ResponseEntity.notFound().build();
+    public Mono<ResponseEntity<Media>> getMediaById(@PathVariable Long id) {
+        return mediaService.getMediaById(id)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Media> updateMedia(@PathVariable Long id, @RequestBody Media media) {
-        Media updatedMedia = mediaService.updateMedia(id, media);
-        return ResponseEntity.ok(updatedMedia);
+    public Mono<ResponseEntity<Media>> updateMedia(@PathVariable Long id, @RequestBody Media media) {
+        return mediaService.updateMedia(id, media)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteMedia(@PathVariable Long id) {
-        try {
-            mediaService.deleteMedia(id);
-            return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(null); // Handle error response
-        }
+    public Mono<ResponseEntity<Void>> deleteMedia(@PathVariable Long id) {
+        return mediaService.deleteMedia(id)
+                .then(Mono.just(ResponseEntity.noContent().<Void>build()))
+                .onErrorResume(ex -> Mono.just(ResponseEntity.badRequest().build()));
     }
 }

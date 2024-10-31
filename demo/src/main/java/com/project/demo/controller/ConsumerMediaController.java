@@ -5,8 +5,8 @@ import com.project.demo.service.ConsumerMediaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api/relationships")
@@ -15,24 +15,28 @@ public class ConsumerMediaController {
     @Autowired
     private ConsumerMediaService consumerMediaService;
 
-    // Create relationship
     @PostMapping
-    public ResponseEntity<ConsumerMedia> createRelationship(@RequestBody ConsumerMedia consumerMedia) {
-        ConsumerMedia createdRelationship = consumerMediaService.createRelationship(consumerMedia);
-        return ResponseEntity.ok(createdRelationship);
+    public Mono<ResponseEntity<ConsumerMedia>> createRelationship(@RequestBody ConsumerMedia consumerMedia) {
+        return consumerMediaService.createRelationship(consumerMedia)
+                .map(ResponseEntity::ok);
     }
 
-    // Get all relationships
     @GetMapping
-    public ResponseEntity<List<ConsumerMedia>> getAllRelationships() {
-        List<ConsumerMedia> relationships = consumerMediaService.getAllRelationships();
-        return ResponseEntity.ok(relationships);
+    public Flux<ConsumerMedia> getAllRelationships() {
+        return consumerMediaService.getAllRelationships();
     }
 
-    // Delete relationship
-    @DeleteMapping
-    public ResponseEntity<Void> deleteRelationship(@RequestParam Long consumerId, @RequestParam Long mediaId) {
-        consumerMediaService.deleteRelationship(consumerId, mediaId);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/{consumerId}/{mediaId}")
+    public Mono<ResponseEntity<ConsumerMedia>> getRelationship(@PathVariable Long consumerId, @PathVariable Long mediaId) {
+        return consumerMediaService.getRelationship(consumerId, mediaId)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{consumerId}/{mediaId}")
+    public Mono<ResponseEntity<Void>> deleteRelationship(@PathVariable Long consumerId, @PathVariable Long mediaId) {
+        return consumerMediaService.deleteRelationship(consumerId, mediaId)
+                .then(Mono.just(ResponseEntity.noContent().<Void>build()))
+                .onErrorResume(ex -> Mono.just(ResponseEntity.badRequest().build()));
     }
 }

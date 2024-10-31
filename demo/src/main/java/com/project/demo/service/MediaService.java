@@ -1,12 +1,13 @@
 package com.project.demo.service;
 
 import com.project.demo.entity.Media;
+import com.project.demo.entity.ConsumerMedia;
 import com.project.demo.repository.MediaRepository;
-import com.project.demo.repository.ConsumerMediaRepository; // Import for relationship checks
+import com.project.demo.repository.ConsumerMediaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
 public class MediaService {
@@ -15,30 +16,36 @@ public class MediaService {
     private MediaRepository mediaRepository;
 
     @Autowired
-    private ConsumerMediaRepository consumerMediaRepository; // For relationship checks
+    private ConsumerMediaRepository consumerMediaRepository;
 
-    public Media createMedia(Media media) {
-        return mediaRepository.save(media);
+    public Mono<Media> createMedia(Media media) {
+        return Mono.fromCallable(() -> mediaRepository.save(media));
     }
 
-    public List<Media> getAllMedia() {
-        return mediaRepository.findAll();
+    public Flux<Media> getAllMedia() {
+        return Flux.fromIterable(mediaRepository.findAll());
     }
 
-    public Media getMediaById(Long id) {
-        return mediaRepository.findById(id).orElse(null); // Handle not found case as needed
+    public Mono<Media> getMediaById(Long id) {
+        return Mono.justOrEmpty(mediaRepository.findById(id));
     }
 
-    public Media updateMedia(Long id, Media media) {
-        media.setId(id); // Set the ID to update
-        return mediaRepository.save(media);
+    public Mono<Media> updateMedia(Long id, Media media) {
+        return Mono.justOrEmpty(mediaRepository.findById(id))
+            .flatMap(existingMedia -> {
+                media.setId(id);
+                return Mono.fromCallable(() -> mediaRepository.save(media));
+            });
     }
 
-    public void deleteMedia(Long id) {
-        // Check if the media is connected to any consumer
-        if (consumerMediaRepository.existsByMediaId(id)) {
-            throw new IllegalArgumentException("Cannot delete media, it is linked to a consumer.");
-        }
-        mediaRepository.deleteById(id);
+    public Mono<Void> deleteMedia(Long id) {
+        return Mono.justOrEmpty(consumerMediaRepository.existsByMediaId(id))
+            .flatMap(hasRelationship -> {
+                if (hasRelationship) {
+                    return Mono.error(new IllegalStateException("Cannot delete Media with existing relationships"));
+                } else {
+                    return Mono.fromRunnable(() -> mediaRepository.deleteById(id));
+                }
+            });
     }
 }

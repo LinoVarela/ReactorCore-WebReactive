@@ -4,6 +4,8 @@ import com.project.demo.entity.ConsumerMedia;
 import com.project.demo.repository.ConsumerMediaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -13,24 +15,24 @@ public class ConsumerMediaService {
     @Autowired
     private ConsumerMediaRepository consumerMediaRepository;
 
-    // Method to create a relationship
-    public ConsumerMedia createRelationship(ConsumerMedia consumerMedia) {
-        return consumerMediaRepository.save(consumerMedia);
+    public Mono<ConsumerMedia> createRelationship(ConsumerMedia consumerMedia) {
+        return Mono.just(consumerMediaRepository.save(consumerMedia));
     }
 
-    // Method to get all relationships
-    public List<ConsumerMedia> getAllRelationships() {
-        return consumerMediaRepository.findAll();
+    public Flux<ConsumerMedia> getAllRelationships() {
+        List<ConsumerMedia> allRelationships = consumerMediaRepository.findAll();
+        return Flux.fromIterable(allRelationships);
     }
 
-    // Method to delete a relationship
-    public void deleteRelationship(Long consumerId, Long mediaId) {
-        consumerMediaRepository.deleteByConsumerIdAndMediaId(consumerId, mediaId);
+    public Mono<ConsumerMedia> getRelationship(Long consumerId, Long mediaId) {
+        return Mono.justOrEmpty(consumerMediaRepository.findByConsumerIdAndMediaId(consumerId, mediaId));
     }
 
-    // Optional: Method to check if a relationship exists
-    public boolean relationshipExists(Long consumerId, Long mediaId) {
-        return consumerMediaRepository.existsByConsumerId(consumerId) && 
-               consumerMediaRepository.existsByMediaId(mediaId);
+    public Mono<Void> deleteRelationship(Long consumerId, Long mediaId) {
+        return Mono.justOrEmpty(consumerMediaRepository.findByConsumerIdAndMediaId(consumerId, mediaId))
+            .flatMap(existingRelationship -> {
+                consumerMediaRepository.delete(existingRelationship);
+                return Mono.empty();
+            });
     }
 }
