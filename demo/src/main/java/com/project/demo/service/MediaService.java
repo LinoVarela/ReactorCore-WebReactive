@@ -1,16 +1,20 @@
 package com.project.demo.service;
 
 import com.project.demo.entity.Media;
-import com.project.demo.entity.ConsumerMedia;
 import com.project.demo.repository.MediaRepository;
 import com.project.demo.repository.ConsumerMediaRepository;
+
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import org.slf4j.Logger;
 
 @Service
 public class MediaService {
+
+    private static final Logger logger = LoggerFactory.getLogger(Media.class);
 
     @Autowired
     private MediaRepository mediaRepository;
@@ -23,7 +27,12 @@ public class MediaService {
     }
 
     public Flux<Media> getAllMedia() {
-        return Flux.fromIterable(mediaRepository.findAll());
+        return Flux.fromIterable(mediaRepository.findAll())
+        .doOnNext(media -> logger.info("Retrieved pet: {}", media))
+        .onErrorResume(error -> {
+            logger.error("Error retrieving pets", error);
+            return Flux.empty();
+        });
     }
 
     public Mono<Media> getMediaById(Long id) {

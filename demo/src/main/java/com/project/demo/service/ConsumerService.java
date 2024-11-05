@@ -1,7 +1,6 @@
 package com.project.demo.service;
 
 import com.project.demo.entity.Consumer;
-import com.project.demo.entity.ConsumerMedia;
 import com.project.demo.repository.ConsumerRepository;
 import com.project.demo.repository.ConsumerMediaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
