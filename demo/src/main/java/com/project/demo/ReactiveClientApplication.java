@@ -447,6 +447,17 @@ public class ReactiveClientApplication {
         }
     }
 
+    private void clearFiles() {
+        for (String filePath : filePaths) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, false))) { 
+                writer.write("");  // Clear the file by writing an empty string
+                logger.info("Cleared file: {}", filePath);
+            } catch (IOException e) {
+                logger.error("Failed to clear file: {}", filePath, e);
+            }
+        }
+    }
+
     public static void main(String[] args) {
         String baseUrl = "http://localhost:8080"; //url e port
         
@@ -474,7 +485,10 @@ public class ReactiveClientApplication {
 
         logger.info("Starting CLIENT");
 
+        clientApp.clearFiles();
+
         CountDownLatch latch = new CountDownLatch(14); // Criar um latch para se esperar a execução das tarefas
+
 
         //Métodos de suporte para obter os dados de cada entity
         clientApp.getAllMedia(latch);

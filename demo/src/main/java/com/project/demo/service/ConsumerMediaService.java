@@ -15,15 +15,30 @@ public class ConsumerMediaService {
     @Autowired
     private ConsumerMediaRepository consumerMediaRepository;
 
+    /**
+     * 
+     * @param consumerMedia - relacao para ser guardada entre user e media
+     * @return entidade consumerMedia
+     */
     public Mono<ConsumerMedia> createRelationship(ConsumerMedia consumerMedia) {
         return Mono.just(consumerMediaRepository.save(consumerMedia));
     }
 
+    /**
+     * Obter todas as relacoes
+     * @return flux com todas as relacoes
+     */
     public Flux<ConsumerMedia> getAllRelationships() {
         List<ConsumerMedia> allRelationships = consumerMediaRepository.findAll();
         return Flux.fromIterable(allRelationships);
     }
 
+    /**
+     * 
+     * @param consumerId - ID do consumer
+     * @param mediaId - ID da media
+     * @return 
+     */
     public Mono<ConsumerMedia> getRelationship(Long consumerId, Long mediaId) {
         return Mono.justOrEmpty(consumerMediaRepository.findByConsumerIdAndMediaId(consumerId, mediaId));
     }

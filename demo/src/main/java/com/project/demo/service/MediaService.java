@@ -22,10 +22,19 @@ public class MediaService {
     @Autowired
     private ConsumerMediaRepository consumerMediaRepository;
 
+    /**
+     * Criar item media
+     * @param media - media (objeto) a ser criada 
+     * @return
+     */
     public Mono<Media> createMedia(Media media) {
         return Mono.fromCallable(() -> mediaRepository.save(media));
     }
 
+    /**
+     * Obter todas as medias
+     * @return
+     */
     public Flux<Media> getAllMedia() {
         return Flux.fromIterable(mediaRepository.findAll())
         .doOnNext(media -> logger.info("Retrieved media: {}", media))
@@ -35,10 +44,22 @@ public class MediaService {
         });
     }
 
+    /**
+     * Obter media especifica
+     * @param id - ID da media que se pretende obter
+     * @return
+     */
     public Mono<Media> getMediaById(Long id) {
         return Mono.justOrEmpty(mediaRepository.findById(id));
     }
 
+
+    /**
+     * Dar update aos dados de uma media
+     * @param id - id da media para dar update
+     * @param media - media com os updates
+     * @return
+     */
     public Mono<Media> updateMedia(Long id, Media media) {
         return Mono.justOrEmpty(mediaRepository.findById(id))
             .flatMap(existingMedia -> {
@@ -47,6 +68,11 @@ public class MediaService {
             });
     }
 
+    /**
+     * Apagar media do repositorio se este não tiver relacao com nenhum consumidor
+     * @param id da media para ser apagada
+     * @return
+     */
     public Mono<Void> deleteMedia(Long id) {
         return Mono.justOrEmpty(consumerMediaRepository.existsByMediaId(id))
             .flatMap(hasRelationship -> {

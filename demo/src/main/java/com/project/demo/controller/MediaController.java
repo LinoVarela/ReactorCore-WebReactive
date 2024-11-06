@@ -25,6 +25,7 @@ public class MediaController {
 
     @PostMapping
     public Mono<ResponseEntity<Media>> createMedia(@RequestBody Media media) {
+        logger.info("Received request to create media with title: {}", media.getTitle());
         return mediaService.createMedia(media)
                 .map(ResponseEntity::ok);
     }

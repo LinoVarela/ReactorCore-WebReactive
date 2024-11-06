@@ -21,6 +21,7 @@ public class ConsumerController {
 
     @PostMapping
     public Mono<ResponseEntity<Consumer>> createConsumer(@RequestBody Consumer consumer) {
+        logger.info("Received request to create consumer with name: {}", consumer.getName());
         return consumerService.createConsumer(consumer)
                 .map(ResponseEntity::ok);
     }
