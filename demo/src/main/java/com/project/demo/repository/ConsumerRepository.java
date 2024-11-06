@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ConsumerRepository extends JpaRepository<Consumer, Long> {
-    // You can add custom query methods here if needed
+
 }
