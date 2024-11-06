@@ -28,9 +28,9 @@ public class MediaService {
 
     public Flux<Media> getAllMedia() {
         return Flux.fromIterable(mediaRepository.findAll())
-        .doOnNext(media -> logger.info("Retrieved pet: {}", media))
+        .doOnNext(media -> logger.info("Retrieved media: {}", media))
         .onErrorResume(error -> {
-            logger.error("Error retrieving pets", error);
+            logger.error("Error retrieving media", error);
             return Flux.empty();
         });
     }
