@@ -361,7 +361,7 @@ public class ReactiveClientApplication {
     }
     
 
-    //QUERIE 10:
+    //QUERIE 10: mostrar users e as medias a que estao associados
     private void usersAndTheirMedia(CountDownLatch latch) {
         webClient.get()
                 .uri("/api/consumers")  
@@ -408,13 +408,12 @@ public class ReactiveClientApplication {
                 .retrieve()
                 .bodyToFlux(Media.class)
                 .map(media -> String.format("Title: %s, Date: %s", media.getTitle(), media.getReleaseDate()))
-                .collectList()
                 .retryWhen(
                     Retry.fixedDelay(3, Duration.ofSeconds(2)) // Retry 3 vezes (com 2 segundos de delay)
                          .doBeforeRetry(retrySignal -> logger.warn("Retrying due to network error... Attempt: {}", retrySignal.totalRetries() + 1))
                 )
                 .doOnTerminate(() -> {
-                    logger.info("Completed fetching media titles and dates with retry logic.");
+                    logger.info("Retry logic");
                     latch.countDown(); 
                 })
                 .subscribe(
