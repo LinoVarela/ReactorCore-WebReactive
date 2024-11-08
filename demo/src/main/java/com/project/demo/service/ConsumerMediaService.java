@@ -16,39 +16,58 @@ public class ConsumerMediaService {
     private ConsumerMediaRepository consumerMediaRepository;
 
     /**
-     * 
-     * @param consumerMedia - relacao para ser guardada entre user e media
-     * @return entidade consumerMedia
+     * Criar nova relação entre consumer e media
+     * @param consumerMedia - relação para ser guardada entre user e media
+     * @return Mono com a entidade consumerMedia
      */
     public Mono<ConsumerMedia> createRelationship(ConsumerMedia consumerMedia) {
-        log.info("Creating relationship between consumer ID: {} and media ID: {}", consumerMedia.getConsumerId(), consumerMedia.getMediaId());
-        return consumerMediaRepository.save(consumerMedia);
+        return consumerMediaRepository.save(consumerMedia)
+                .doOnSuccess(savedRelation -> 
+                    log.info("Created relationship between consumer ID: {} and media ID: {}", 
+                    savedRelation.getConsumerId(), savedRelation.getMediaId()))
+                .doOnError(error -> 
+                    log.error("Failed to create relationship: {}", error.getMessage()));
     }
-
 
     /**
      * Obter todas as relacoes  
-     * @return flux com todas as relacoes
+     * @return Flux com todas as relacoes
      */
     public Flux<ConsumerMedia> getAllRelationships() {
-        log.info("Retrieving all consumer-media relationships");
-        return consumerMediaRepository.findAll();
+        return consumerMediaRepository.findAll()
+                .doOnComplete(() -> log.info("Retrieved all consumer-media relationships"))
+                .doOnError(error -> log.error("Failed to retrieve relationships: {}", error.getMessage()));
     }
 
     /**
-     * 
+     * Obter relação específica
      * @param consumerId - ID do consumer
      * @param mediaId - ID da media
-     * @return 
+     * @return Mono com a relação específica
      */
     public Mono<ConsumerMedia> getRelationship(Long consumerId, Long mediaId) {
-        log.info("Retrieving relationship between consumer ID: {} and media ID: {}", consumerId, mediaId);
-        return consumerMediaRepository.findByConsumerIdAndMediaId(consumerId, mediaId);
+        return consumerMediaRepository.findByConsumerIdAndMediaId(consumerId, mediaId)
+                .doOnSuccess(relationship -> {
+                    if (relationship != null) {
+                        log.info("Retrieved relationship between consumer ID: {} and media ID: {}", consumerId, mediaId);
+                    }
+                })
+                .doOnError(error -> 
+                    log.error("Failed to retrieve relationship between consumer ID: {} and media ID: {}", consumerId, mediaId, error));
     }
 
+    /**
+     * Apagar relação específica
+     * @param consumerId - ID do consumer
+     * @param mediaId - ID da media
+     * @return Mono indicando a conclusão da operação de exclusão
+     */
     public Mono<Void> deleteRelationship(Long consumerId, Long mediaId) {
-        log.info("Deleting relationship between consumer ID: {} and media ID: {}", consumerId, mediaId);
         return consumerMediaRepository.findByConsumerIdAndMediaId(consumerId, mediaId)
-            .flatMap(existingRelationship -> consumerMediaRepository.delete(existingRelationship));
+                .flatMap(existingRelationship -> consumerMediaRepository.delete(existingRelationship)
+                    .doOnSuccess(unused -> 
+                        log.info("Deleted relationship between consumer ID: {} and media ID: {}", consumerId, mediaId)))
+                .doOnError(error -> 
+                    log.error("Failed to delete relationship between consumer ID: {} and media ID: {}", consumerId, mediaId, error));
     }
 }

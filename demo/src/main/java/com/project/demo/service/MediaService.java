@@ -26,8 +26,9 @@ public class MediaService {
      * @return Mono with the created media item
      */
     public Mono<Media> createMedia(Media media) {
-        log.info("Creating media: {}", media);
-        return mediaRepository.save(media);
+        return mediaRepository.save(media)
+                .doOnSuccess(savedMedia -> log.info("Created media with ID: {}", savedMedia.getId()))
+                .doOnError(error -> log.error("Failed to create media: {}", error.getMessage()));
     }
 
     /**
@@ -35,8 +36,9 @@ public class MediaService {
      * @return Flux with all media items
      */
     public Flux<Media> getAllMedia() {
-        log.info("Retrieving all media");
-        return mediaRepository.findAll();
+        return mediaRepository.findAll()
+                .doOnComplete(() -> log.info("Retrieved all media items"))
+                .doOnError(error -> log.error("Failed to retrieve media items: {}", error.getMessage()));
     }
 
     /**
@@ -45,8 +47,11 @@ public class MediaService {
      * @return Mono with the specific media
      */
     public Mono<Media> getMediaById(Long id) {
-        log.info("Retrieving media with ID: {}", id);
-        return mediaRepository.findById(id);
+        return mediaRepository.findById(id)
+                .doOnSuccess(media -> {
+                    if (media != null) log.info("Retrieved media with ID: {}", id);
+                })
+                .doOnError(error -> log.error("Failed to retrieve media with ID {}: {}", id, error.getMessage()));
     }
 
     /**
@@ -56,12 +61,13 @@ public class MediaService {
      * @return Mono with the updated media
      */
     public Mono<Media> updateMedia(Long id, Media media) {
-        log.info("Updating media with ID: {}", id);
         return mediaRepository.findById(id)
                 .flatMap(existingMedia -> {
                     media.setId(id); // Ensure we use the correct ID for the update
                     return mediaRepository.save(media);
-                });
+                })
+                .doOnSuccess(updatedMedia -> log.info("Updated media with ID: {}", id))
+                .doOnError(error -> log.error("Failed to update media with ID {}: {}", id, error.getMessage()));
     }
 
     /**
@@ -70,16 +76,16 @@ public class MediaService {
      * @return Mono indicating the completion of delete operation
      */
     public Mono<Void> deleteMedia(Long id) {
-        log.info("Attempting to delete media with ID: {}", id);
         return consumerMediaRepository.existsByMediaId(id)
                 .flatMap(hasRelationship -> {
                     if (hasRelationship) {
-                        log.warn("Cannot delete media with existing relationships");
-                        return Mono.error(new IllegalStateException("Cannot delete Media with existing relationships"));
+                        log.warn("Cannot delete media with ID: {} due to existing relationships", id);
+                        return Mono.error(new IllegalStateException("Cannot delete media with existing relationships"));
                     } else {
-                        log.info("Deleted media with ID: {}", id);
-                        return mediaRepository.deleteById(id);
+                        return mediaRepository.deleteById(id)
+                                .doOnSuccess(unused -> log.info("Deleted media with ID: {}", id));
                     }
-                });
+                })
+                .doOnError(error -> log.error("Failed to delete media with ID {}: {}", id, error.getMessage()));
     }
 }
