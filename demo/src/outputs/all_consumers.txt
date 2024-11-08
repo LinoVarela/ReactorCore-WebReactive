@@ -11,4 +11,3 @@ Consumer ID: 159; Name: Emma; Age : 26
 Consumer ID: 160; Name: Michael; Age : 40
 Consumer ID: 161; Name: Olivia; Age : 27
 Consumer ID: 162; Name: Olivia; Age : 27
-Consumer ID: 203; Name: Naster; Age : 22

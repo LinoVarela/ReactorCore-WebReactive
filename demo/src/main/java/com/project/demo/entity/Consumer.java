@@ -1,13 +1,12 @@
 package com.project.demo.entity;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
 
-@Entity
-@Table(name = "consumer")
+@Table("consumer") 
 public class Consumer {
 
     @Id
-    @GeneratedValue
     private Long id;
 
     private String name;
@@ -16,10 +15,8 @@ public class Consumer {
 
     private String gender;
 
-    // Default constructor
     public Consumer() {}
 
-    // Getters and setters
     public Long getId() {
         return id;
     }
@@ -56,5 +53,4 @@ public class Consumer {
     public String toString() {
         return "Consumer [id=" + id + ", name=" + name + ", age=" + age + ", gender=" + gender + "]";
     }
-
 }

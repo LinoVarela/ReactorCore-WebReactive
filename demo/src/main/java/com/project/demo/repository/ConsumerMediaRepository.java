@@ -1,16 +1,16 @@
 package com.project.demo.repository;
 
 import com.project.demo.entity.ConsumerMedia;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
-import java.util.Optional;
+import reactor.core.publisher.Mono;
 
 @Repository
-public interface ConsumerMediaRepository extends JpaRepository<ConsumerMedia, Long> {
+public interface ConsumerMediaRepository extends ReactiveCrudRepository<ConsumerMedia, Long> {
 
-    Optional<ConsumerMedia> findByConsumerIdAndMediaId(Long consumerId, Long mediaId);
+    Mono<ConsumerMedia> findByConsumerIdAndMediaId(Long consumerId, Long mediaId);
 
-    boolean existsByConsumerId(Long consumerId);
+    Mono<Boolean> existsByConsumerId(Long consumerId);
 
-    boolean existsByMediaId(Long mediaId);
+    Mono<Boolean> existsByMediaId(Long mediaId);
 }

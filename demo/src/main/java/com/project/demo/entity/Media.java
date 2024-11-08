@@ -1,30 +1,28 @@
 package com.project.demo.entity;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.data.relational.core.mapping.Column;
 import java.time.LocalDate;
 
-@Entity
-@Table(name = "media")
+@Table("media") 
 public class Media {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String title;
 
-    @Column(name = "release_date")
+    @Column("release_date") 
     private LocalDate releaseDate;
 
-    @Column(name = "average_rating")
+    @Column("average_rating")
     private Short averageRating;
 
     private String type;
 
-    // Default constructor
     public Media() {}
 
-    // Getters and setters
     public Long getId() {
         return id;
     }
@@ -70,7 +68,4 @@ public class Media {
         return "Media [id=" + id + ", title=" + title + ", releaseDate=" + releaseDate + ", averageRating="
                 + averageRating + ", type=" + type + "]";
     }
-
-    
-
 }

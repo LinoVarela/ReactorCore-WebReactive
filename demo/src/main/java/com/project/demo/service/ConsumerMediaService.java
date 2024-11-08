@@ -6,10 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class ConsumerMediaService {
 
     @Autowired
@@ -21,16 +21,18 @@ public class ConsumerMediaService {
      * @return entidade consumerMedia
      */
     public Mono<ConsumerMedia> createRelationship(ConsumerMedia consumerMedia) {
-        return Mono.just(consumerMediaRepository.save(consumerMedia));
+        log.info("Creating relationship between consumer ID: {} and media ID: {}", consumerMedia.getConsumerId(), consumerMedia.getMediaId());
+        return consumerMediaRepository.save(consumerMedia);
     }
 
+
     /**
-     * Obter todas as relacoes
+     * Obter todas as relacoes  
      * @return flux com todas as relacoes
      */
     public Flux<ConsumerMedia> getAllRelationships() {
-        List<ConsumerMedia> allRelationships = consumerMediaRepository.findAll();
-        return Flux.fromIterable(allRelationships);
+        log.info("Retrieving all consumer-media relationships");
+        return consumerMediaRepository.findAll();
     }
 
     /**
@@ -40,14 +42,13 @@ public class ConsumerMediaService {
      * @return 
      */
     public Mono<ConsumerMedia> getRelationship(Long consumerId, Long mediaId) {
-        return Mono.justOrEmpty(consumerMediaRepository.findByConsumerIdAndMediaId(consumerId, mediaId));
+        log.info("Retrieving relationship between consumer ID: {} and media ID: {}", consumerId, mediaId);
+        return consumerMediaRepository.findByConsumerIdAndMediaId(consumerId, mediaId);
     }
 
     public Mono<Void> deleteRelationship(Long consumerId, Long mediaId) {
-        return Mono.justOrEmpty(consumerMediaRepository.findByConsumerIdAndMediaId(consumerId, mediaId))
-            .flatMap(existingRelationship -> {
-                consumerMediaRepository.delete(existingRelationship);
-                return Mono.empty();
-            });
+        log.info("Deleting relationship between consumer ID: {} and media ID: {}", consumerId, mediaId);
+        return consumerMediaRepository.findByConsumerIdAndMediaId(consumerId, mediaId)
+            .flatMap(existingRelationship -> consumerMediaRepository.delete(existingRelationship));
     }
 }

@@ -1,25 +1,19 @@
 package com.project.demo.entity;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
 
-@Entity
-@Table(name = "consumer_media")
+@Table("consumer_media")
 public class ConsumerMedia {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "consumer_id", nullable = false)
     private Long consumerId;
-
-    @Column(name = "media_id", nullable = false)
     private Long mediaId;
 
-    // Default constructor
     public ConsumerMedia() {}
 
-    // Getters and setters
     public Long getId() {
         return id;
     }
@@ -44,7 +38,6 @@ public class ConsumerMedia {
         this.mediaId = mediaId;
     }
 
-    // Optional: toString, equals, and hashCode methods
     @Override
     public String toString() {
         return "ConsumerMedia [id=" + id + ", consumerId=" + consumerId + ", mediaId=" + mediaId + "]";
